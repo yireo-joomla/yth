@@ -4,10 +4,10 @@
  *
  * @author Yireo (info@yireo.com)
  * @package Yth
- * @copyright Copyright 2012
+ * @copyright Copyright 2013
  * @license GNU Public License
  * @link http://www.yireo.com
- * @version 0.3
+ * @version 0.10.2
  *
  * Usage: 
  *      Place this file "css.php" in your template CSS-folder (templates/TEMPLATE/css/css.php)
@@ -34,9 +34,6 @@ $options = array(
     'crunch' => 1,
     'zlib' => 1,
 );
-
-// Include the Yth-class
-include_once dirname(dirname(__FILE__)).'/yth.php';
 
 /*************** DO NOT EDIT BELOW THIS LINE *********************/
 

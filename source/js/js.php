@@ -7,7 +7,7 @@
  * @copyright Copyright 2012
  * @license GNU Public License
  * @link http://www.yireo.com
- * @version 0.3
+ * @version 0.10.1
  *
  * Usage: 
  *      Place this file "js.php" in your template JS-folder (templates/TEMPLATE/js/js.php)
@@ -35,9 +35,6 @@ $scripts = array(
 $options = array(
     'zlib' => 1,
 );
-
-// Define the base-path of Joomla!
-define('JPATH_BASE', dirname(dirname(dirname(dirname(__FILE__)))));
 
 /*************** DO NOT EDIT BELOW THIS LINE *********************/
 
