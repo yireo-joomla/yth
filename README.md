@@ -1,5 +1,6 @@
 yth (Yireo Template Helper)
 ===========================
+Homepage: http://www.yireo.com/software/labs/template-helper
 
 Quick Description: A set PHP-scripts to aid in Joomla! template development
 
@@ -12,6 +13,13 @@ Checks for the current page (isArticle, isHome); Image conversion to data-URIs.
 
 Project-page: http://www.yireo.com/software/labs/template-helper
 Usage: http://www.yireo.com/software/labs/template-helper/usage
+
+New in Yth 0.10.2:
+* Joomla! 3.1 fix
+
+New in Yth 0.10.1:
+* Fix of PHP-notices
+* Extra code-comments
 
 New in Yth 0.10.0:
 * Addition to GitHub
