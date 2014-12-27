@@ -4,18 +4,14 @@
  *
  * @author Yireo (info@yireo.com)
  * @package Yth
- * @copyright Copyright 2013
+ * @copyright Copyright 2015
  * @license GNU Public License
  * @link http://www.yireo.com
- * @version 0.10.2
+ * @version 0.11.0
  */
 
 // Prevent direct access
 defined('_JEXEC') or die();
-
-// Wipe out the current generator tag
-$document = JFactory::getDocument();
-$document->setGenerator(JFactory::getConfig()->get('config.sitename'));
 
 // Define the base-path of this template
 define('TEMPLATE_BASE', dirname(__FILE__));
@@ -23,561 +19,632 @@ define('TEMPLATE_BASE', dirname(__FILE__));
 /*
  * Yireo template class
  *
- * @static
  * @package Yth
  */
-abstract class Yth 
+class Yth 
 {
-    /*
-     * Method to manually override the META-generator
-     *
-     * @static
-     * @access public
-     * @param string $generator
-     * @return null
-     */
-    static public function setGenerator($generator)
-    {
-        $document = JFactory::getDocument();
-        $document->setGenerator($generator);
-    }
-    
-    /*
-     * Method to remove MooTools from the page
-     *
-     * @static
-     * @access public
-     * @param null
-     * @return null
-     */
-    static public function removeMooTools()
-    {
-        $document = JFactory::getDocument();
-        $head = $document->getHeadData();
-        if(!empty($head['scripts'])) {
-            foreach($head['scripts'] as $script => $scriptdata) {
-                if(stristr($script, 'mootools') || stristr($script, 'caption.js') || stristr($script, 'media/system/js/core.js')) {
-                    unset($head['scripts'][$script]);
-                }
-            }
-        }
+	/*
+	 * Document instance
+	 */
+	protected $doc = null;
 
-        if(!empty($head['script'])) {
-            foreach($head['script'] as $index => $script) {
-                if(stristr($script, 'window.addEvent')) {
-                    unset($head['script'][$index]);
-                }
-            }
-        }
+	/*
+	 * Application instance
+	 */
+	protected $app = null;
 
-        if(!empty($head['custom'])) {
-            foreach($head['custom'] as $index => $script) {
-                if(stristr($script, 'mootools')) {
-                    unset($head['custom'][$index]);
-                }
-            }
-        }
+	/*
+	 * JInput instance
+	 */
+	protected $input = null;
 
-        $document->setHeadData($head);
-    }
-    
-    /*
-     * Method to load the custom language file:
-     * /templates/TEMPLATE/language/en-GB/en-GB.custom.ini
-     *
-     * @static
-     * @access public
-     * @param null
-     * @return null
-     * @todo Untested under Joomla! 2.5 and 3.0
-     */
-    static public function loadCustomLanguageFile()
-    {
-        $language = JFactory::getLanguage();
-        $language->load('custom' , dirname(__FILE__), $language->getTag(), true);
-    }
-    
-    /*
-     * Method to get the HTML of a splitmenu
-     *
-     * @static
-     * @access public
-     * @param string $menu 
-     * @param int $startLevel
-     * @param int $endLevel
-     * @param bool $showChildren
-     * @return string
-     */
-    static public function getSplitMenu( $menu = 'mainmenu', $startLevel = 0, $endLevel = 1, $showChildren = false ) 
-    {
-        // Import the module helper
-        jimport('joomla.application.module.helper');
+	/*
+	 * Menu instance
+	 */
+	protected $menu = null;
 
-        // Get a new instance of the mod_mainmenu module
-        if(self::isJoomla15()) {
-            $module = JModuleHelper::getModule('mod_mainmenu', $menu);
-        } else {
-            $module = JModuleHelper::getModule('mod_menu', $menu);
-        }
+	/*
+	 * Constructor called when instantiating this class
+	 */
+	public function __construct()
+	{
+		// Fetch system variables
+		$this->doc = JFactory::getDocument();
+		$this->app = JFactory::getApplication();
+		$this->input = $this->app->input;
+		$this->menu = $this->app->getMenu();
 
-        if(!empty($module) && is_object($module)) {
+		// Automatically reset the generator
+		$this->doc->setGenerator(JFactory::getConfig()->get('config.sitename'));
+	}
 
-            // Construct the module parameters
-            $params = array();
-            $params[] = (self::isJoomla15()) ? 'menu-type='.$menu : 'menutype='.$menu;
-            $params[] = 'cache=0';
-            $params[] = 'startLevel='.$startLevel;
-            $params[] = 'endLevel='.$endLevel;
-            $params[] = 'showAllChildren='.(int)$showChildren;
-            $module->params = implode("\n", $params);
+	/*
+	 * Method to manually override the META-generator
+	 *
+	 * @access public
+	 * @param string $generator
+	 * @return null
+	 */
+	public function setGenerator($generator)
+	{
+		$this->doc->setGenerator($generator);
+	}
+	
+	/*
+	 * Method to remove MooTools from the page
+	 *
+	 * @access public
+	 * @param null
+	 * @return null
+	 */
+	public function removeMooTools()
+	{
+		$head = $this->doc->getHeadData();
+		if (!empty($head['scripts']))
+		{
+			foreach ($head['scripts'] as $script => $scriptdata)
+		{
+				if (stristr($script, 'mootools') || stristr($script, 'caption.js') || stristr($script, 'media/system/js/core.js'))
+				{
+					unset($head['scripts'][$script]);
+				}
+			}
+		}
 
-            // Construct the module options
-            $options = array('style' => 'raw');
+		if (!empty($head['script']))
+		{
+			foreach ($head['script'] as $index => $script)
+			{
+				if (stristr($script, 'window.addEvent'))
+				{
+					unset($head['script'][$index]);
+				}
+			}
+		}
 
-            // Render this module
-            $document = JFactory::getDocument();
-            $renderer = $document->loadRenderer('module');
-            $output = $renderer->render($module, $options);
-            return $output;
-        }
+		if (!empty($head['custom']))
+		{
+			foreach ($head['custom'] as $index => $script)
+			{
+				if (stristr($script, 'mootools'))
+				{
+					unset($head['custom'][$index]);
+				}
+			}
+		}
 
-        return null;
-    }
+		$this->doc->setHeadData($head);
+	}
+	
+	/*
+	 * Method to load the custom language file:
+	 * /templates/TEMPLATE/language/en-GB/en-GB.custom.ini
+	 *
+	 * @access public
+	 * @param null
+	 * @return null
+	 * @todo Untested under Joomla! 2.5 and 3.0
+	 */
+	public function loadCustomLanguageFile()
+	{
+		$language = JFactory::getLanguage();
+		$language->load('custom' , dirname(__FILE__), $language->getTag(), true);
+	}
+	
+	/*
+	 * Method to get the HTML of a splitmenu
+	 *
+	 * @access public
+	 * @param string $menu 
+	 * @param int $startLevel
+	 * @param int $endLevel
+	 * @param bool $showChildren
+	 * @return string
+	 */
+	public function getSplitMenu($menu = 'mainmenu', $startLevel = 0, $endLevel = 1, $showChildren = false) 
+	{
+		// Import the module helper
+		jimport('joomla.application.module.helper');
 
-    /*
-     * Method to determine whether a certain module is loaded or not
-     *
-     * @static
-     * @access public
-     * @param string $name
-     * @return bool
-     */
-    static public function hasModule($name = '') 
-    {
-        // Import the module helper
-        jimport('joomla.application.module.helper');
+		// Get a new instance of the mod_mainmenu module
+		$module = JModuleHelper::getModule('mod_menu', $menu);
 
-        $instance = JModuleHelper::getModule($name);
-        if(is_object($instance)) {
-            return true;
-        }
+		if (!empty($module) && is_object($module))
+		{
+			// Construct the module parameters
+			$params = array();
+			$params[] = 'menutype=' . $menu;
+			$params[] = 'cache=0';
+			$params[] = 'startLevel=' . $startLevel;
+			$params[] = 'endLevel=' . $endLevel;
+			$params[] = 'showAllChildren=' . (int) $showChildren;
+			$module->params = implode("\n", $params);
 
-        return false;
-    }
+			// Construct the module options
+			$options = array('style' => 'raw');
 
-    /*
-     * Copy of the original JDocumentHTML::countModules() method, but this copy skips empty modules as well
-     * 
-     * @static
-     * @access public
-     * @param string $condition
-     * @return integer
-     */
-    static public function countModules($condition)
-    {
-        $result = '';
-        $document = JFactory::getDocument();
+			// Render this module
+			$renderer = $this->doc->loadRenderer('module');
+			$output = $renderer->render($module, $options);
 
-        $words = explode(' ', $condition);
-        for($i = 0; $i < count($words); $i+=2)
-        {
-            // odd parts (modules)
-            $name = strtolower($words[$i]);
-            $buffer = $document->getBuffer('modules', $name);
-            if(!isset($buffer) || $buffer === false || empty($buffer)) {
-                $words[$i] = 0;
-            } else {
-                $words[$i] = count(JModuleHelper::getModules($name));
-            }
-        }
+			return $output;
+		}
 
-        $str = 'return '.implode(' ', $words).';';
+		return null;
+	}
 
-        return eval($str);
-    }
+	/*
+	 * Method to determine whether a certain module is loaded or not
+	 *
+	 * @access public
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasModule($name = '') 
+	{
+		// Import the module helper
+		jimport('joomla.application.module.helper');
 
-    /*
-     * Method to get the parent Menu-Item of the current page
-     *
-     * @static
-     * @access public
-     * @param int $level
-     * @return string
-     */
-    static public function getActiveParent($level = 0) 
-    {
-        // Fetch the active menu-item
-        $menu = JFactory::getApplication()->getMenu();
-        $active = $menu->getActive();
+		$instance = JModuleHelper::getModule($name);
 
-        // Get the parent (at a certain level)
-        $parent = $active->tree[$level];
-        $parentItem = $menu->getItem($parent);
+		if (is_object($instance))
+		{
+			return true;
+		}
 
-        // Return the title of this Menu-Item
-        if(isset($parentItem->title)) return $parentItem->title;
-        if(isset($parentItem->name)) return $parentItem->title;
-    }
+		return false;
+	}
 
-    /*
-     * Method to determine whether the current page is the Joomla! homepage
-     *
-     * @static
-     * @access public
-     * @param null
-     * @return bool
-     */
-    static public function isHome() 
-    {
-        // Fetch the active menu-item
-        $menu = JFactory::getApplication()->getMenu();
-        $active = $menu->getActive();
+	/*
+	 * Copy of the original JDocumentHTML::countModules() method, but this copy skips empty modules as well
+	 * 
+	 * @access public
+	 * @param string $condition
+	 * @return integer
+	 */
+	public function countModules($condition)
+	{
+		$result = '';
+		$words = explode(' ', $condition);
 
-        // Return whether this active menu-item is home or not
-        return (boolean)$active->home;
-    }
+		for($i = 0; $i < count($words); $i+=2)
+		{
+			// odd parts (modules)
+			$name = strtolower($words[$i]);
+			$buffer = $this->doc->getBuffer('modules', $name);
 
-    /*
-     * Method to get the current sitename
-     *
-     * @static
-     * @access public
-     * @param null
-     * @return string
-     */
-    static public function getSitename() 
-    {
-        return JFactory::getConfig()->get('config.sitename');
-    }
+			if(!isset($buffer) || $buffer === false || empty($buffer))	
+			{
+				$words[$i] = 0;
+			}
+			else
+			{
+				$words[$i] = count(JModuleHelper::getModules($name));
+			}
+		}
 
-    /*
-     * Method to determine whether the current page is a Joomla! article
-     *
-     * @static
-     * @access public
-     * @param null
-     * @return bool
-     */
-    static public function isArticle() 
-    {
-        return (JRequest::getCmd('option') == 'com_content' && JRequest::getCmd('view') == 'article'); 
-    }
+		$str = 'return ' . implode(' ', $words) . ';';
 
-    /*
-     * Method to add a global title to every page title
-     *
-     * @static
-     * @access public
-     * @param string $global_title
-     * @return boolean
-     */
-    static public function addGlobalTitle( $global_title = null, $before = false) 
-    {
-        // Set a default global title
-        if(empty($global_title)) {
-            $global_title = self::getSitename();
-        }
+		return eval($str);
+	}
 
-        // Get the current title
-        $document = JFactory::getDocument();
-        $title = $document->getTitle();
+	/*
+	 * Method to get the parent Menu-Item of the current page
+	 *
+	 * @access public
+	 * @param int $level
+	 * @return string
+	 */
+	public function getActiveParent($level = 0) 
+	{
+		// Fetch the active menu-item
+		$active = $this->menu->getActive();
 
-        // Determine if the title is already included
-        if(stristr($title, $global_title)) {
-            return false;
-        }
+		// Get the parent (at a certain level)
+		$parent = $active->tree[$level];
+		$parentItem = $this->menu->getItem($parent);
 
-        // Add the global title to the current title
-        if($before == true) {
-            $document->setTitle($global_title.' - '.$title);
-        } else {
-            $document->setTitle($title . ' - ' . $global_title );
-        }
+		// Return the title of this Menu-Item
+		if (isset($parentItem->title))
+		{
+			return $parentItem->title;
+		}
 
-        return true;
-    }
+		if (isset($parentItem->name))
+		{
+			return $parentItem->title;
+		}
+	}
 
-    /*
-     * Method to detect a certain browser type
-     *
-     * @static
-     * @access public
-     * @param string $shortname
-     * @return string
-     */
-    static public function isBrowser($shortname = 'ie6')
-    {
-        jimport('joomla.environment.browser'); 
-        $browser = JBrowser::getInstance(); 
+	/*
+	 * Method to return the current Menu Item ID
+	 *
+	 * @access public
+	 * @param null
+	 * @return int
+	 */
+	public function getItemId() 
+	{
+		return $this->input->getInt();
+	}
 
-        $rt = false;
-        switch($shortname) {
-            case 'firefox':
-            case 'ff':
-                $rt = (stristr($browser->getAgentString(), 'firefox')) ? true : false;
-                break;
+	/*
+	 * Method to check up a specific Menu Item
+	 *
+	 * @access public
+	 * @param int
+	 * @return bool
+	 */
+	public function isMenuItem($itemId) 
+	{
+		if ($this->input->getInt() == $itemId)
+		{
+			return true;
+		}
 
-            case 'ie':
-                $rt = ($browser->getBrowser() == 'msie') ? true : false;
-                break;
+		return false;
+	}
 
-            case 'ie6':
-                $rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '6.0') ? true : false;
-                break;
+	/*
+	 * Method to fetch the current path
+	 *
+	 * @access public
+	 * @param string $output Output type
+	 * @return mixed
+	 */
+	public function getPath($output = 'array') 
+	{
+		// @todo
+	}
 
-            case 'ie7':
-                $rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '7.0') ? true : false;
-                break;
+	/*
+	 * Method to get the current language
+	 *
+	 * @access public
+	 * @param null
+	 * @return string
+	 */
+	public function getLanguage() 
+	{
+		// @todo
+	}
 
-            case 'ie8':
-                $rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '8.0') ? true : false;
-                break;
+	/*
+	 * Method to determine whether the current page is the Joomla! homepage
+	 *
+	 * @access public
+	 * @param null
+	 * @return bool
+	 */
+	public function isHome($language = null) 
+	{
+		// @todo: Implement language
 
-            default:
-                $rt = (stristr($browser->getAgentString(), $shortname)) ? true : false;
-                break;
+		// Fetch the active menu-item
+		$active = $this->menu->getActive();
 
-        }
+		// Return whether this active menu-item is home or not
+		return (boolean)$active->home;
+	}
 
-        return $rt;
-    }
+	/*
+	 * Method to get the current sitename
+	 *
+	 * @access public
+	 * @param null
+	 * @return string
+	 */
+	public function getSitename() 
+	{
+		return JFactory::getConfig()->get('config.sitename');
+	}
 
-    /*
-     * Method to construct the URL for the Yireo CSS/PHP-script
-     *
-     * @static
-     * @access public
-     * @param array $stylesheets
-     * @param bool $system_css
-     * @return string
-     */
-    static public function addCssPhp($stylesheets, $system_css = false) 
-    {
-        $template = JFactory::getApplication()->getTemplate();
-        $path = 'templates/'.$template.'/'.self::loadCssPhp($stylesheets, $system_css);
-        echo '<link rel="stylesheet" href="'.$path.'" type="text/css" />';
-    }
+	/*
+	 * Method to determine whether the current page is a article
+	 *
+	 * @access public
+	 * @param null
+	 * @return bool
+	 */
+	public function isArticle() 
+	{
+		return ($this->input->getCmd('option') == 'com_content' && $this->input->getCmd('view') == 'article'); 
+	}
 
-    /*
-     * Method to construct the URL for the Yireo CSS/PHP-script
-     *
-     * @static
-     * @access public
-     * @param array $extra
-     * @return string
-     */
-    static public function loadCssPhp($stylesheets = array(), $system_css = false) 
-    {
-        // The actual file
-        $css_php = 'css/css.php';
+	/*
+	 * Method to determine whether the current page is a blog
+	 *
+	 * @access public
+	 * @param null
+	 * @return bool
+	 */
+	public function isBlog() 
+	{
+		return ($this->input->getCmd('option') == 'com_content' 
+			&& $this->input->getCmd('view') == 'category' 
+			&& $this->input->getCmd('layout') == 'blog'); 
+	}
 
-        // Detect component CSS automatically
-        $option = JRequest::getCmd('option');
-        if(is_file(dirname(__FILE__).'/css/'.$option.'.css')) {
-            $stylesheets[] = $option;
-        }
+	/*
+	 * Method to check whether the current user is logged in
+	 *
+	 * @access public
+	 * @param null
+	 * @return bool
+	 */
+	public function isLoggedIn() 
+	{
+		$user = JFactory::getUser();
 
-        // Load the sheet options
-        $options = array();
-        if(!empty($stylesheets) && is_array($stylesheets)) {
-            $options[] = 's='.implode(',', $stylesheets);
-        }
+		return ($user->guest == 0) ? true : false;
+	}
 
-        // Add a SSL-flag
-        if(JURI::getInstance()->isSsl()) {
-            $options[] = 'ssl=1';
-        }
+	/*
+	 * Method to check whether the current user is a guest
+	 *
+	 * @access public
+	 * @param null
+	 * @return bool
+	 */
+	public function isGuest() 
+	{
+		$user = JFactory::getUser();
 
-        // Add the system CSS flag
-        if($system_css == true) {
-            $options[] = 'system=1';
-        }
+		return ($user->guest == 1) ? true : false;
+	}
 
-        if(!empty($options)) {
-            $css_php .= '?'.implode('&amp;', $options);
-        }
-        return $css_php;
-    }
+	/*
+	 * Method to add a global title to every page title
+	 *
+	 * @access public
+	 * @param string $global_title
+	 * @return boolean
+	 */
+	public function addGlobalTitle( $global_title = null, $before = false) 
+	{
+		// Set a default global title
+		if (empty($global_title))
+		{
+			$global_title = $this->getSitename();
+		}
 
-    /*
-     * Method to construct the URL for the Yireo JS/PHP-script
-     *
-     * @static
-     * @access public
-     * @param array $scripts
-     * @return string
-     */
-    static public function addJsPhp($scripts)
-    {
-        $template = JFactory::getApplication()->getTemplate();
-        $path = 'templates/'.$template.'/'.self::loadJsPhp($scripts);
-        echo '<script type="text/javascript" src="'.$path.'"></script>';
-    }
+		// Get the current title
+		$title = $this->doc->getTitle();
 
-    /*
-     * Method to construct the URL for the Yireo JS/PHP-script
-     *
-     * @static
-     * @access public
-     * @param array $extra
-     * @return string
-     */
-    static public function loadJsPhp($scripts = array())
-    {
-        // The actual file
-        $js_php = 'js/js.php';
+		// Determine if the title is already included
+		if (stristr($title, $global_title))
+		{
+			return false;
+		}
 
-        // Detect component CSS automatically
-        $option = JRequest::getCmd('option');
-        if(is_file(dirname(__FILE__).'/js/'.$option.'.js')) {
-            $scripts[] = $option;
-        }
+		// Add the global title to the current title
+		if ($before == true)
+		{
+			$this->doc->setTitle($global_title . ' - ' . $title);
+		}
+		else
+		{
+			$this->doc->setTitle($title . ' - ' . $global_title );
+		}
 
-        // Load the sheet options
-        $options = array();
-        if(!empty($scripts) && is_array($scripts)) {
-            $options[] = 's='.implode(',', $scripts);
-        }
+		return true;
+	}
 
-        // Add a SSL-flag
-        if(JURI::getInstance()->isSsl()) {
-            $options[] = 'ssl=1';
-        }
+	/*
+	 * Method to detect a certain browser type
+	 *
+	 * @access public
+	 * @param string $shortname
+	 * @return string
+	 */
+	public function isBrowser($shortname = 'ie6')
+	{
+		jimport('joomla.environment.browser'); 
+		$browser = JBrowser::getInstance(); 
 
-        if(!empty($options)) {
-            $js_php .= '?'.implode('&amp;', $options);
-        }
-        return $js_php;
-    }
+		$rt = false;
+		switch($shortname)
+		{
+			case 'firefox':
+			case 'ff':
+				$rt = (stristr($browser->getAgentString(), 'firefox')) ? true : false;
+				break;
 
-    /*
-     * Method to include an image
-     *
-     * @static
-     * @access public
-     * @param string $image
-     * @return string
-     */
-    static public function image($image = null)
-    {
-        $template = JFactory::getApplication()->getTemplate();
-        if(!is_file($image) && is_file(TEMPLATE_BASE.'/images/'.$image)) {
-            return 'templates/'.$template.'/images/'.$image;
-        } elseif(!is_file($image) && is_file(TEMPLATE_BASE.'/'.$image)) {
-            return 'templates/'.$template.'/'.$image;
-        }
-        return $image;
-    }
+			case 'ie':
+				$rt = ($browser->getBrowser() == 'msie') ? true : false;
+				break;
 
-    /*
-     * Method to include an image as data-URI
-     *
-     * @static
-     * @access public
-     * @param string $image
-     * @return string
-     */
-    static public function datauri($image = null)
-    {
-        if(!is_file($image) && is_file(TEMPLATE_BASE.'/images/'.$image)) {
-            $image = TEMPLATE_BASE.'/images/'.$image;
-        } elseif(!is_file($image) && is_file(TEMPLATE_BASE.'/'.$image)) {
-            $image = TEMPLATE_BASE.'/'.$image;
-        } elseif(!is_file($image)) {
-            $image = JPATH_BASE.'/'.$image;
-        }
+			case 'ie6':
+				$rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '6.0') ? true : false;
+				break;
 
-        // Don't know what to do with this
-        if(!is_file($image)) {
-            return $image;
-        }
+			case 'ie7':
+				$rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '7.0') ? true : false;
+				break;
 
-        // Fetch the content
-        $image = realpath($image);
-        $content = @file_get_contents($image);
-        if(empty($content)) {
-            return null;
-        }
+			case 'ie8':
+				$rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '8.0') ? true : false;
+				break;
 
-        $mimetype = null; 
-        if(preg_match('/\.gif$/i', $image)) {
-            $mimetype = 'image/gif';
-        } elseif(preg_match('/\.png$/i', $image)) {
-            $mimetype = 'image/png';
-        } elseif(preg_match('/\.webp$/i', $image)) {
-            $mimetype = 'image/webp';
-        } elseif(preg_match('/\.(jpg|jpeg)$/i', $image)) {
-            $mimetype = 'image/jpg';
-        }
+			default:
+				$rt = (stristr($browser->getAgentString(), $shortname)) ? true : false;
+				break;
 
-        if(!empty($content) && !empty($mimetype)) {
-            return 'data:'.$mimetype.';base64,'.base64_encode($content);
-        }
-        return $image;
-    }
+		}
 
-    /*
-     * Method to debug certain settings
-     *
-     * @static
-     * @access public
-     * @param mixed $ips String or array with IP-addresses
-     * @return null
-     */
-    static public function isDebug($ips = null)
-    {
-        if(empty($ips)) {
-            return;
-        } elseif(is_string($ips)) {
-            $ips = array($ips);
-        }
+		return $rt;
+	}
 
-        foreach($ips as $ip) {
-            if($ip == $_SERVER['REMOTE_ADDR']) {
-                return true;
-            }
-        }
+	/*
+	 * Method to include an image
+	 *
+	 * @access public
+	 * @param string $image
+	 * @return string
+	 */
+	public function image($image = null)
+	{
+		$template = $this->app->getTemplate();
+		if (!is_file($image) && is_file(TEMPLATE_BASE . '/images/' . $image))
+		{
+			return 'templates/' . $template . '/images/' . $image;
+		}
+		elseif(!is_file($image) && is_file(TEMPLATE_BASE . '/' . $image))
+		{
+			return 'templates/' . $template . '/' . $image;
+		}
 
-        return false;
-    }
+		return $image;
+	}
 
-    /*
-     * Helper-method to get the current Joomla! core version
-     * 
-     * @param null
-     * @return string
-     */
-    static public function getJoomlaVersion()
-    {
-        JLoader::import( 'joomla.version' );
-        $version = new JVersion();
-        return $version->getShortVersion();
-    }
+	/*
+	 * Method to include an image as data-URI
+	 *
+	 * @access public
+	 * @param string $image
+	 * @return string
+	 */
+	public function datauri($image = null)
+	{
+		if (!is_file($image) && is_file(TEMPLATE_BASE . '/images/' . $image))
+		{
+			$image = TEMPLATE_BASE . '/images/' . $image;
+		} 
+		elseif(!is_file($image) && is_file(TEMPLATE_BASE . '/' . $image))
+		{
+			$image = TEMPLATE_BASE . '/' . $image;
+		} 
+		elseif(!is_file($image))
+		{
+			$image = JPATH_BASE . '/' . $image;
+		}
 
-    /*
-     * Helper-method to get the current Joomla! core version
-     * 
-     * @param null
-     * @return bool
-     */
-    static public function isJoomlaVersion($version = null)
-    {
-        JLoader::import( 'joomla.version' );
-        $jversion = new JVersion();
-        if(version_compare( $jversion->RELEASE, $version, 'eq')) {
-            return true;
-        }
-        return false;
-    }
+		// Don't know what to do with this
+		if (!is_file($image))
+		{
+			return $image;
+		}
 
-    /*
-     * Helper-method to get the current Joomla! core version
-     * 
-     * @param null
-     * @return bool
-     */
-    static public function isJoomla15()
-    {
-        return self::isJoomlaVersion('1.5');
-    }
+		// Fetch the content
+		$image = realpath($image);
+		$content = @file_get_contents($image);
+
+		if (empty($content))
+		{
+			return null;
+		}
+
+		$mimetype = null; 
+		if (preg_match('/\.gif$/i', $image))
+		{
+			$mimetype = 'image/gif';
+		} 
+		elseif (preg_match('/\.png$/i', $image)) 
+		{
+			$mimetype = 'image/png';
+		}	
+		elseif (preg_match('/\.webp$/i', $image))
+		{
+			$mimetype = 'image/webp';
+		} 
+		elseif (preg_match('/\.(jpg|jpeg)$/i', $image)) 
+		{
+			$mimetype = 'image/jpg';
+		}
+
+		if (!empty($content) && !empty($mimetype)) 
+		{
+			return 'data:' . $mimetype . ';base64,' . base64_encode($content);
+		}
+		return $image;
+	}
+
+	/*
+	 * Method to debug certain settings
+	 *
+	 * @access public
+	 * @param mixed $ips String or array with IP-addresses
+	 * @return null
+	 */
+	public function isDebug($ips = null)
+	{
+		if (empty($ips))
+		{
+			return;
+		} 
+		elseif (is_string($ips))
+		{
+			$ips = array($ips);
+		}
+
+		foreach ($ips as $ip) 
+		{
+			if ($ip == $_SERVER['REMOTE_ADDR'])
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/*
+	 * Helper-method to get the current Joomla! core version
+	 * 
+	 * @param null
+	 * @return bool
+	 */
+	public function isJoomlaVersion($version = null)
+	{
+		JLoader::import('joomla.version');
+		$jversion = new JVersion();
+
+		if (version_compare( $jversion->RELEASE, $version, 'eq'))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/*
+	 * Generate a list of useful CSS classes for the body
+	 * 
+	 * @param null
+	 * @return bool
+	 */
+	public function getBodySuffix()
+	{
+		$classes = array();
+		$classes = 'item-' . $this->getItemId();
+		$classes = 'path-' . implode('-', $this->getPath('array'));
+		$classes = 'home-' . (int) $this->isHome();
+
+		return implode(' ', $classes);
+	}
+
+	/*
+	 * Return the JInput object
+	 * 
+	 * @param null
+	 * @return bool
+	 */
+	public function getInput()
+	{
+		return $this->input;
+	}
+
+	/*
+	 * Add a stylesheet
+	 * 
+	 * @param string
+	 * @return null
+	 */
+	public function addCss($css)
+	{
+		return $this->doc->addStylesheet('templates/yth/css/'.$css);
+	}
 }
+
+// Automatically instantiate the class
+$yth = new Yth();
