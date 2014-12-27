@@ -123,7 +123,6 @@ class Yth
 	 * @access public
 	 * @param null
 	 * @return null
-	 * @todo Untested under Joomla! 2.5 and 3.0
 	 */
 	public function loadCustomLanguageFile()
 	{
@@ -265,7 +264,7 @@ class Yth
 	 */
 	public function getItemId() 
 	{
-		return $this->input->getInt();
+		return $this->input->getInt('Itemid');
 	}
 
 	/*
@@ -294,7 +293,17 @@ class Yth
 	 */
 	public function getPath($output = 'array') 
 	{
-		// @todo
+        $uri = JURI::getInstance();
+        $path = $uri->getPath();
+        $path = preg_replace('/^\//', '', $path);
+
+        if ($output == 'array')
+        {
+            $path = explode('/', $path);
+            return $path;
+        }
+		
+        return $path;
 	}
 
 	/*
@@ -306,7 +315,9 @@ class Yth
 	 */
 	public function getLanguage() 
 	{
-		// @todo
+	    $language = JFactory::getLanguage();	
+
+        return $language->getTag();
 	}
 
 	/*
@@ -318,8 +329,6 @@ class Yth
 	 */
 	public function isHome($language = null) 
 	{
-		// @todo: Implement language
-
 		// Fetch the active menu-item
 		$active = $this->menu->getActive();
 
@@ -485,6 +494,7 @@ class Yth
 	public function image($image = null)
 	{
 		$template = $this->app->getTemplate();
+
 		if (!is_file($image) && is_file(TEMPLATE_BASE . '/images/' . $image))
 		{
 			return 'templates/' . $template . '/images/' . $image;
@@ -616,9 +626,12 @@ class Yth
 	public function getBodySuffix()
 	{
 		$classes = array();
-		$classes = 'item-' . $this->getItemId();
-		$classes = 'path-' . implode('-', $this->getPath('array'));
-		$classes = 'home-' . (int) $this->isHome();
+		$classes[] = 'option-' . str_replace('_', '-', $this->input->getCmd('option'));
+		$classes[] = 'view-' . $this->input->getCmd('view');
+		$classes[] = 'layout-' . $this->input->getCmd('layout');
+		$classes[] = 'item-' . $this->getItemId();
+		$classes[] = 'path-' . implode('-', $this->getPath('array'));
+		$classes[] = 'home-' . (int) $this->isHome();
 
 		return implode(' ', $classes);
 	}
@@ -635,6 +648,19 @@ class Yth
 	}
 
 	/*
+	 * Add a script
+	 * 
+	 * @param string
+	 * @return null
+	 */
+	public function addJs($js)
+	{
+		$template = $this->app->getTemplate();
+
+		return $this->doc->addScript('templates/' . $template . '/js/'.$js);
+	}
+
+	/*
 	 * Add a stylesheet
 	 * 
 	 * @param string
@@ -642,7 +668,9 @@ class Yth
 	 */
 	public function addCss($css)
 	{
-		return $this->doc->addStylesheet('templates/yth/css/'.$css);
+		$template = $this->app->getTemplate();
+
+		return $this->doc->addStylesheet('templates/yth/' . $template . '/'.$css);
 	}
 }
 
