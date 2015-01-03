@@ -651,10 +651,16 @@ class Yth
 	 * Add a script
 	 * 
 	 * @param string
+     * @param bool
 	 * @return null
 	 */
-	public function addJs($js)
+	public function addJs($js, $add_suffix = true)
 	{
+        if (preg_match('/\.js/', $js) == false && $add_suffix)
+        {
+            $js .= '.js';
+        }
+
 		$template = $this->app->getTemplate();
 
 		return $this->doc->addScript('templates/' . $template . '/js/'.$js);
