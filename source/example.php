@@ -20,19 +20,32 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 // Include the library itself
 include_once (dirname(__FILE__).'/yth.php');
 
+
 // Add a global title
 $yth->addGlobalTitle('My Website Is Uber Cool');
+
 
 // Remove MooTools
 $yth->removeMooTools();
 
-// Construct extra stylesheets
-$extra_stylesheets = array();
-if($yth->hasModule('mod_example')) $extra_stylesheets[] = 'mod_example';
-if($yth->getInput()->getCmd('option') == 'com_example') $extra_stylesheets[] = 'components/com_example/css/style.css';
-if($yth->isBrowser('ie6')) $extra_stylesheets[] = 'ie6';
-if ($yth->isDebug('127.0.0.1')) $extra_stylesheets[] = 'debug';
+
+// Add extra stylesheets
+if ($yth->hasModule('mod_example')) $yth->addCss('mod_example');
+if ($yth->getInput()->getCmd('option') == 'com_example') $yth->addCss('com_example');
+if ($yth->isBrowser('ie6')) $this->addCss('ie6');
+if ($yth->isDebug('127.0.0.1')) $this->addCss('debug.css');
+
 ?>
+
+<?php
+// Print body class
+?>
+
+<body class="<?php echo $yth->getBodySuffix(); ?>">
+
+
+<img src="<?php echo $yth->datauri('logo.png'); ?>" />
+
 
 <?php
 // Splitmenu: Get the first level of the menu "mainmenu"
@@ -43,6 +56,9 @@ echo $top_menu_html;
 $main_menu_html = $yth->getSplitMenu('mainmenu', 1, 9);
 echo $main_menu_html;
 
+
 // Splitmenu: Get the title of the active parent Menu-Item
 echo $yth->getActiveParent();
 
+?>
+</body>
