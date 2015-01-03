@@ -1,6 +1,6 @@
 yth (Yireo Template Helper)
 ===========================
-Homepage: http://www.yireo.com/software/labs/template-helper
+Homepage: https://www.yireo.com/software/joomla-extensions/template-helper
 
 Quick Description: A set PHP-scripts to aid in Joomla! template development
 
@@ -11,6 +11,6 @@ simple PHP-functions that accomplish complicated tasks: This is where Yth comes 
 Yth offers a set of methods for common tasks: Building a splitmenu; Compressing CSS-files and JavaScript-files; Removing MooTools; Check for modules being enabled;
 Checks for the current page (isArticle, isHome); Image conversion to data-URIs.
 
-Project-page: http://www.yireo.com/software/labs/template-helper
-Usage: http://www.yireo.com/software/labs/template-helper/usage
+Project-page: https://www.yireo.com/software/joomla-extensions/template-helper
+Usage: https://www.yireo.com/software/joomla-extensions/template-helper/usage
 
