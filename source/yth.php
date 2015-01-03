@@ -664,10 +664,16 @@ class Yth
 	 * Add a stylesheet
 	 * 
 	 * @param string
+     * @param bool
 	 * @return null
 	 */
-	public function addCss($css)
+	public function addCss($css, $add_suffix = true)
 	{
+        if (preg_match('/\.css/', $css) == false && $add_suffix)
+        {
+            $css .= '.css';
+        }
+
 		$template = $this->app->getTemplate();
 
 		return $this->doc->addStylesheet('templates/yth/' . $template . '/'.$css);
