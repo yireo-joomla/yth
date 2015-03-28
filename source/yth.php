@@ -332,6 +332,11 @@ class Yth
 		// Fetch the active menu-item
 		$active = $this->menu->getActive();
 
+        if (!is_object($active))
+        {
+            return false;
+        }
+
 		// Return whether this active menu-item is home or not
 		return (boolean)$active->home;
 	}
