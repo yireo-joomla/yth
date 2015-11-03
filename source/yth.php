@@ -689,6 +689,23 @@ class Yth
 
 		return $this->doc->addStylesheet('templates/yth/' . $template . '/'.$css);
 	}
+
+    public function isComponentView($component, $view, $layout = null)
+    {
+        if ($this->input->getCmd('option') != $component) {
+            return false;
+        }
+
+        if ($this->input->getCmd('view') != $view) {
+            return false;
+        }
+
+        if (!empty($layout) && $this->input->getCmd('layout') != $layout) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // Automatically instantiate the class
