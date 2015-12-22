@@ -459,6 +459,10 @@ class Yth
 		$rt = false;
 		switch($shortname)
 		{
+			case 'edge':
+        			$rt = (stristr($browser->getAgentString(), 'edge')) ? true : false;
+        			break;
+
 			case 'firefox':
 			case 'ff':
 				$rt = (stristr($browser->getAgentString(), 'firefox')) ? true : false;
