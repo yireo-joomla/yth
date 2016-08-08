@@ -483,6 +483,14 @@ class Yth
 			case 'ie8':
 				$rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '8.0') ? true : false;
 				break;
+				
+			case 'ie9':
+				$rt = ($browser->getBrowser() == 'msie' && $browser->getVersion() == '9.0') ? true : false;
+				break;
+				
+			case 'lteie9':
+				$rt = ($browser->getBrowser() == 'msie' && $browser->getMajor() <= 9) ? true : false;
+				break;
 
 			default:
 				$rt = (stristr($browser->getAgentString(), $shortname)) ? true : false;
